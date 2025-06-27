@@ -1,0 +1,112 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Wordle Solver – Español</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;margin:0 12px;}
+h1{margin:10px 0;}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-bottom:16px;}
+th,td{padding:3px 6px;border:1px solid #e0e0e0;text-align:left;}
+th{background:#f0f0f0;}
+.row{display:flex;gap:12px;flex-wrap:wrap;}
+.column{flex:1 1 0;min-width:220px;}          /* caben 6 en resoluciones ≥1350 px */
+.btnTab{margin-right:8px;padding:4px 10px;}
+</style>
+</head>
+<body>
+<h1>Wordle Solver – Español</h1>
+
+<!-- pestañas ---------------------------------------------------------- -->
+<div>
+  <button id="tabSolver"  class="btnTab">Resolver Wordle</button>
+  <button id="tabLetras"  class="btnTab">Buscar palabras</button>
+  <button id="tabCompare" class="btnTab" disabled>Comparar (≤100)</button>
+</div>
+
+<!-- ================= PANEL SOLVER =================================== -->
+<section id="panelSolver">
+  <p>
+    Introduce una palabra de 5 letras:
+    <input id="guess" maxlength="5" size="10">
+    <button id="btnGuardar">Guardar intento</button>
+    <button id="btnReset">Resetear</button>
+    <button id="btnCalcular">Generar sugerencias</button>
+  </p>
+  <p>Colores (gris / amarillo / verde):<br>
+    <select id="color0"></select><select id="color1"></select><select id="color2"></select>
+    <select id="color3"></select><select id="color4"></select>
+  </p>
+  <pre id="historial"></pre>
+
+  <!-- ---------- SUGERENCIAS (6 columnas) ---------------------------- -->
+  <h2>Sugerencias</h2>
+  <div class="row">
+    <!-- FULL -->
+    <div class="column">
+      <h3>Candidatas a resolver full (<span id="candCountFull">0</span>)</h3>
+      <table id="tablaResolverFull"><thead><tr><th>Palabra</th><th>H</th></tr></thead></table>
+    </div>
+    <div class="column">
+      <h3>Mejores para descartar full</h3>
+      <table id="tablaDescartarFull"><thead><tr><th>Palabra</th><th>H</th></tr></thead></table>
+    </div>
+    <div class="column">
+      <h3>Repetición verde full</h3>
+      <table id="tablaVerdeFull"><thead><tr><th>Palabra</th><th>H</th></tr></thead></table>
+    </div>
+
+    <!-- RAE -->
+    <div class="column">
+      <h3>Candidatas a resolver RAE (<span id="candCountRAE">0</span>)</h3>
+      <table id="tablaResolverRAE"><thead><tr><th>Palabra</th><th>H</th></tr></thead></table>
+    </div>
+    <div class="column">
+      <h3>Mejores para descartar RAE</h3>
+      <table id="tablaDescartarRAE"><thead><tr><th>Palabra</th><th>H</th></tr></thead></table>
+    </div>
+    <div class="column">
+      <h3>Repetición verde RAE</h3>
+      <table id="tablaVerdeRAE"><thead><tr><th>Palabra</th><th>H</th></tr></thead></table>
+    </div>
+  </div>
+
+  <!-- ---------- FRECUENCIAS ---------------------------------------- -->
+  <h2>Frecuencias de letras</h2>
+  <div class="row">
+    <div class="column">
+      <h4>Full</h4>
+      <table id="tablaLetrasFull"><thead><tr><th>Letra</th><th># apariciones</th><th># palabras</th><th># repetidas</th></tr></thead></table>
+    </div>
+    <div class="column">
+      <h4>RAE</h4>
+      <table id="tablaLetrasRAE"><thead><tr><th>Letra</th><th># apariciones</th><th># palabras</th><th># repetidas</th></tr></thead></table>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PANEL BUSCAR =================================== -->
+<section id="panelBuscar" style="display:none;">
+  <p>
+    Introduce de 1 a 10 letras (orden irrelevante):
+    <input id="inputLetras" maxlength="10" size="10">
+    <button id="btnBuscarUsuario">Buscar</button>
+  </p>
+  <div id="resultadoBusqueda"></div>
+</section>
+
+<!-- ================= PANEL COMPARE ================================== -->
+<section id="panelCompare" style="display:none;">
+  <p>Palabras extra (opcional, máx 2, separadas por coma):<br>
+    <input id="extraInput" style="width:300px">
+    <button id="btnRunCompare">Comparar</button>
+  </p>
+  <div id="compareArea" style="overflow:auto;"></div>
+</section>
+
+<!-- ================== SCRIPTS ======================================= -->
+<script src="diccionario.js"></script>
+<script src="diccionarioRAE.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

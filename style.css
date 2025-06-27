@@ -1,0 +1,11 @@
+body{font-family:Arial,Helvetica,sans-serif;margin:20px;background:#f8f8f8}
+h1{margin-bottom:10px}
+.input-area{margin-bottom:10px}
+select,input{padding:4px;font-size:15px;margin:2px}
+button{padding:6px 12px;font-size:15px;margin:4px}
+#output-container{display:flex;flex-wrap:wrap;gap:30px;margin-top:10px}
+.result-column{flex:1 1 260px;min-width:240px}
+table{border-collapse:collapse;width:100%}
+th,td{padding:3px 6px;border-bottom:1px solid #ccc;font-size:14px}
+th{background:#eee;text-align:left}
+.historial{white-space:pre-line;font-size:14px;color:#444;margin-top:6px}
