@@ -6,12 +6,17 @@
 <style>
 body{font-family:Arial,Helvetica,sans-serif;margin:0 12px;}
 h1{margin:10px 0;}
-table{width:100%;border-collapse:collapse;font-size:14px;margin-bottom:16px;}
-th,td{padding:3px 6px;border:1px solid #e0e0e0;text-align:left;}
-th{background:#f0f0f0;}
-.row{display:flex;gap:12px;flex-wrap:wrap;}
-.column{flex:1 1 0;min-width:220px;}          /* caben 6 en resoluciones ≥1350 px */
-.btnTab{margin-right:8px;padding:4px 10px;}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px;}   /* ↓ font */
+th,td{padding:2px 4px;border:1px solid #e0e0e0;text-align:left;}                /* ↓ padding */
+th{background:#f0f0f0;white-space:nowrap;}
+td{white-space:nowrap;}
+
+.row{display:flex;gap:8px;flex-wrap:wrap;}
+.column{flex:1 1 140px;}        /* ↓ min-width: de 220 → 140 px */
+.btnTab{margin-right:6px;padding:4px 10px;}
+
+/* Opcional: un poco de margen inferior en secciones para respirar */
+section{margin-bottom:24px;}
 </style>
 </head>
 <body>
@@ -87,8 +92,7 @@ th{background:#f0f0f0;}
 
 <!-- ================= PANEL BUSCAR =================================== -->
 <section id="panelBuscar" style="display:none;">
-  <p>
-    Introduce de 1 a 10 letras (orden irrelevante):
+  <p>Introduce de 1 a 10 letras (orden irrelevante):
     <input id="inputLetras" maxlength="10" size="10">
     <button id="btnBuscarUsuario">Buscar</button>
   </p>
