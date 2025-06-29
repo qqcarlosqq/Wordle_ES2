@@ -6,30 +6,34 @@
 <style>
 body{font-family:Arial,Helvetica,sans-serif;margin:0 12px;}
 h1{margin:10px 0;}
-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px;}   /* ↓ font */
-th,td{padding:2px 4px;border:1px solid #e0e0e0;text-align:left;}                /* ↓ padding */
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px;}
+th,td{padding:2px 4px;border:1px solid #e0e0e0;text-align:left;}
 th{background:#f0f0f0;white-space:nowrap;}
 td{white-space:nowrap;}
 
 .row{display:flex;gap:8px;flex-wrap:wrap;}
-.column{flex:1 1 140px;}        /* ↓ min-width: de 220 → 140 px */
-.btnTab{margin-right:6px;padding:4px 10px;}
+.column{flex:1 1 140px;}
+.column h3{
+  margin:0 0 2px 0;height:48px;
+  display:flex;flex-direction:column;justify-content:flex-end;line-height:1.2;
+}
+.column h3 small{font-weight:normal;font-size:11px;white-space:nowrap;}
 
-/* Opcional: un poco de margen inferior en secciones para respirar */
+.btnTab{margin-right:6px;padding:4px 10px;}
 section{margin-bottom:24px;}
 </style>
 </head>
 <body>
 <h1>Wordle Solver – Español</h1>
 
-<!-- pestañas ---------------------------------------------------------- -->
+<!-- pestañas -->
 <div>
   <button id="tabSolver"  class="btnTab">Resolver Wordle</button>
   <button id="tabLetras"  class="btnTab">Buscar palabras</button>
   <button id="tabCompare" class="btnTab" disabled>Comparar (≤100)</button>
 </div>
 
-<!-- ================= PANEL SOLVER =================================== -->
+<!-- ================= PANEL SOLVER ================= -->
 <section id="panelSolver">
   <p>
     Introduce una palabra de 5 letras:
@@ -44,16 +48,16 @@ section{margin-bottom:24px;}
   </p>
   <pre id="historial"></pre>
 
-  <!-- ---------- SUGERENCIAS (6 columnas) ---------------------------- -->
+  <!-- ---------- SUGERENCIAS ------------------------ -->
   <h2>Sugerencias</h2>
   <div class="row">
     <!-- FULL -->
     <div class="column">
-      <h3>Candidatas a resolver full (<span id="candCountFull">0</span>)</h3>
+      <h3>Candidatas full<br><small>(<span id="candCountFull">0</span>)</small></h3>
       <table id="tablaResolverFull"><thead><tr><th>Palabra</th><th>H</th></tr></thead></table>
     </div>
     <div class="column">
-      <h3>Mejores para descartar full</h3>
+      <h3>Mejores descartar full</h3>
       <table id="tablaDescartarFull"><thead><tr><th>Palabra</th><th>H</th></tr></thead></table>
     </div>
     <div class="column">
@@ -63,11 +67,11 @@ section{margin-bottom:24px;}
 
     <!-- RAE -->
     <div class="column">
-      <h3>Candidatas a resolver RAE (<span id="candCountRAE">0</span>)</h3>
+      <h3>Candidatas RAE<br><small>(<span id="candCountRAE">0</span>)</small></h3>
       <table id="tablaResolverRAE"><thead><tr><th>Palabra</th><th>H</th></tr></thead></table>
     </div>
     <div class="column">
-      <h3>Mejores para descartar RAE</h3>
+      <h3>Mejores descartar RAE</h3>
       <table id="tablaDescartarRAE"><thead><tr><th>Palabra</th><th>H</th></tr></thead></table>
     </div>
     <div class="column">
@@ -76,7 +80,7 @@ section{margin-bottom:24px;}
     </div>
   </div>
 
-  <!-- ---------- FRECUENCIAS ---------------------------------------- -->
+  <!-- ---------- FRECUENCIAS ------------------------ -->
   <h2>Frecuencias de letras</h2>
   <div class="row">
     <div class="column">
@@ -90,7 +94,7 @@ section{margin-bottom:24px;}
   </div>
 </section>
 
-<!-- ================= PANEL BUSCAR =================================== -->
+<!-- ================= PANEL BUSCAR ================= -->
 <section id="panelBuscar" style="display:none;">
   <p>Introduce de 1 a 10 letras (orden irrelevante):
     <input id="inputLetras" maxlength="10" size="10">
@@ -99,16 +103,24 @@ section{margin-bottom:24px;}
   <div id="resultadoBusqueda"></div>
 </section>
 
-<!-- ================= PANEL COMPARE ================================== -->
+<!-- ================= PANEL COMPARE ================ -->
 <section id="panelCompare" style="display:none;">
-  <p>Palabras extra (opcional, máx 2, separadas por coma):<br>
+  <p>
+    Pool a comparar:
+    <select id="comparePool">
+      <option value="RAE">Candidatas RAE</option>
+      <option value="FULL">Candidatas full</option>
+    </select>
+  </p>
+  <p>
+    Palabras extra (opcional, máx 2, separadas por coma):<br>
     <input id="extraInput" style="width:300px">
     <button id="btnRunCompare">Comparar</button>
   </p>
   <div id="compareArea" style="overflow:auto;"></div>
 </section>
 
-<!-- ================== SCRIPTS ======================================= -->
+<!-- ================= SCRIPTS ====================== -->
 <script src="diccionario.js"></script>
 <script src="diccionarioRAE.js"></script>
 <script src="script.js"></script>
