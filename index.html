@@ -3,34 +3,37 @@
 <head>
 <meta charset="UTF-8">
 <title>Wordle Solver – Español</title>
+
+<!-- ──── ESTILOS ────────────────────────────────────────── -->
 <style>
+/* — reglas base que ya tenías — */
 body{font-family:Arial,Helvetica,sans-serif;margin:0 12px;}
 h1{margin:10px 0;}
-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px;}
+table{border-collapse:collapse;font-size:12px;margin-bottom:12px;}
 th,td{padding:2px 4px;border:1px solid #e0e0e0;text-align:left;}
 th{background:#f0f0f0;white-space:nowrap;}
 td{white-space:nowrap;}
-
 .row{display:flex;gap:8px;flex-wrap:wrap;}
 .column{flex:1 1 140px;}
-.column h3{
-  margin:0 0 2px 0;height:48px;
-  display:flex;flex-direction:column;justify-content:flex-end;line-height:1.2;
-}
-.column h3 small{font-weight:normal;font-size:11px;white-space:nowrap;}
+.btnTab{margin-right:6px;margin-bottom:8px;cursor:pointer;}
 
-.btnTab{margin-right:6px;padding:4px 10px;}
-section{margin-bottom:24px;}
+/* — ajustes específicos para Estadísticas — */
+#panelStats{padding-top:4px;}
+#panelStats .statsBox{display:inline-block;vertical-align:top;margin-right:18px;}
+#panelStats table{width:auto;min-width:140px;}
+#panelStats h3{margin:6px 0 2px;}
+#panelStats button{margin-bottom:6px;}
 </style>
 </head>
 <body>
 <h1>Wordle Solver – Español</h1>
 
-<!-- pestañas -->
+<!-- ─── PESTAÑAS ─── -->
 <div>
   <button id="tabSolver"  class="btnTab">Resolver Wordle</button>
   <button id="tabLetras"  class="btnTab">Buscar palabras</button>
   <button id="tabCompare" class="btnTab" disabled>Comparar (≤100)</button>
+  <button id="tabStats"   class="btnTab">Estadísticas</button>
 </div>
 
 <!-- ================= PANEL SOLVER ================= -->
@@ -48,7 +51,7 @@ section{margin-bottom:24px;}
   </p>
   <pre id="historial"></pre>
 
-  <!-- ---------- SUGERENCIAS ------------------------ -->
+  <!-- ---------- SUGERENCIAS (sin cambios) ---------- -->
   <h2>Sugerencias</h2>
   <div class="row">
     <!-- FULL -->
@@ -80,7 +83,7 @@ section{margin-bottom:24px;}
     </div>
   </div>
 
-  <!-- ---------- FRECUENCIAS ------------------------ -->
+  <!-- ---------- FRECUENCIAS (sin cambios) ---------- -->
   <h2>Frecuencias de letras</h2>
   <div class="row">
     <div class="column">
@@ -120,9 +123,45 @@ section{margin-bottom:24px;}
   <div id="compareArea" style="overflow:auto;"></div>
 </section>
 
-<!-- ================= SCRIPTS ====================== -->
+<!-- ================= PANEL STATS (NUEVO) ========== -->
+<section id="panelStats" style="display:none;">
+  <h2>Estadísticas</h2>
+
+  <!-- ——— TABLAS ——— -->
+  <div class="statsBox">
+    <h3>Actual</h3>
+    <button id="btnResetActual">Reset / Editar</button>
+    <table>
+      <thead><tr><th>Intentos</th><th>Nº veces</th><th>%</th></tr></thead>
+      <tbody id="statsActualBody"></tbody>
+    </table>
+  </div>
+
+  <div class="statsBox">
+    <h3>Acumulado histórico</h3>
+    <button id="btnResetHist">Reset / Editar</button>
+    <table>
+      <thead><tr><th>Intentos</th><th>Nº veces</th><th>%</th></tr></thead>
+      <tbody id="statsHistBody"></tbody>
+    </table>
+  </div>
+
+  <div class="statsBox">
+    <h3>Después de uso de la herramienta</h3>
+    <button id="btnResetTool">Reset / Editar</button>
+    <table>
+      <thead><tr><th>Intentos</th><th>Nº veces</th><th>%</th></tr></thead>
+      <tbody id="statsToolBody"></tbody>
+    </table>
+  </div>
+
+  <p style="clear:both"><button id="btnSendStats">Enviar por email</button></p>
+</section>
+
+<!-- ================ SCRIPTS ======================= -->
 <script src="diccionario.js"></script>
 <script src="diccionarioRAE.js"></script>
+<script src="stats.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

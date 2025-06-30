@@ -60,19 +60,52 @@ const TABLE_IDS=[
 ];
 
 /* ================= INIT UI ================= */
-document.addEventListener("DOMContentLoaded",()=>{
+document.addEventListener("DOMContentLoaded", () => {
   buildColorSelects();
-  on("btnGuardar",guardarIntento); on("btnReset",resetear); on("btnCalcular",generarListas);
-  on("btnBuscarUsuario",buscarPalabrasUsuario); on("btnRunCompare",runCompare);
-  on("tabSolver",()=>showTab("solver")); on("tabLetras",()=>showTab("buscar")); on("tabCompare",()=>showTab("compare"));
-  $("comparePool").addEventListener("change",e=>comparePoolNow=e.target.value);
-  showTab("solver"); generarListas();
+
+  /* botones principales */
+  on("btnGuardar",  guardarIntento);
+  on("btnReset",    resetear);
+  on("btnCalcular", generarListas);
+
+  /* buscar / compare */
+  on("btnBuscarUsuario", buscarPalabrasUsuario);
+  on("btnRunCompare",    runCompare);
+
+  /* pestañas */
+  on("tabSolver",  () => showTab("solver"));
+  on("tabLetras",  () => showTab("buscar"));
+  on("tabCompare", () => showTab("compare"));
+  on("tabStats",   () => showTab("stats"));        // ← NUEVA
+
+  $("comparePool").addEventListener("change", e => comparePoolNow = e.target.value);
+
+  showTab("solver");
+  generarListas();
 });
 
 /* ---------- selects & pestañas ---------- */
-function buildColorSelects(){for(let i=0;i<5;i++){const s=$("color"+i);s.innerHTML="";COLORES.forEach(c=>{const o=document.createElement("option");o.value=o.textContent=c;s.appendChild(o);});s.value="gris";}}
-function showTab(t){$("panelSolver").style.display=t==="solver"?"":"none";$("panelBuscar").style.display=t==="buscar"?"":"none";$("panelCompare").style.display=t==="compare"?"":"none";}
-const readColors=()=>Array.from({length:5},(_,i)=>$("color"+i).value);
+function buildColorSelects() {
+  for (let i = 0; i < 5; i++) {
+    const s = $("color" + i);
+    s.innerHTML = "";
+    COLORES.forEach(c => {
+      const o = document.createElement("option");
+      o.value = o.textContent = c;
+      s.appendChild(o);
+    });
+    s.value = "gris";
+  }
+}
+
+function showTab(t) {
+  $("panelSolver" ).style.display = t === "solver"  ? "" : "none";
+  $("panelBuscar" ).style.display = t === "buscar"  ? "" : "none";
+  $("panelCompare").style.display = t === "compare" ? "" : "none";
+  $("panelStats"  ).style.display = t === "stats"   ? "" : "none";   // ← NUEVO
+}
+
+const readColors = () => Array.from({ length: 5 }, (_, i) => $("color" + i).value);
 
 /* ================= HISTORIAL ================= */
 function guardarIntento(){
@@ -124,16 +157,42 @@ function guardarIntento(){
   $("guess").value=""; buildColorSelects(); renderHist();
 }
 
-function resetear(){
-  history=[];candidatasFull=candidatasRAE=[];
-  entCacheFull.clear();entCacheRAE.clear();version++;
-  TABLE_IDS.forEach(id=>tbody(id).innerHTML="");
-  $("candCountFull").textContent=$("candCountRAE").textContent="0";
-  $("compareArea").innerHTML="";compareSelectMode=false;$("btnRunCompare").textContent="Comparar";
-  toggleCompareBtn();renderHist();
-}
-function renderHist(){$("historial").textContent=history.map(h=>`${h.word} → ${h.colors.join(", ")}`).join("\n");}
+function resetear() {
+  /* 1️⃣  notificar final de partida a stats.js */
+  if (history.length) {
+    const bucket = resolverBucket(history);
+    document.dispatchEvent(
+      new CustomEvent("ws:gameEnd", { detail: { history: history.slice(), bucket } })
+    );
+  }
 
+  /* 2️⃣  limpiar estado */
+  history = [];
+  candidatasFull = candidatasRAE = [];
+  entCacheFull.clear(); entCacheRAE.clear(); version++;
+
+  TABLE_IDS.forEach(id => tbody(id).innerHTML = "");
+  $("candCountFull").textContent = $("candCountRAE").textContent = "0";
+  $("compareArea").innerHTML = "";
+  compareSelectMode = false;
+  $("btnRunCompare").textContent = "Comparar";
+
+  toggleCompareBtn();
+  renderHist();
+}
+
+function resolverBucket(hist) {
+  const idxWin = hist.findIndex(h => h.colors.every(c => c === "VERDE"));
+  if (idxWin === -1) return 7;            // sin victoria
+  const intentos = idxWin + 1;
+  return (intentos >= 1 && intentos <= 6) ? intentos : 7;
+}
+
+function renderHist() {
+  $("historial").textContent = history
+    .map(h => `${h.word} → ${h.colors.join(", ")}`)
+    .join("\n");
+}
 /* ================= FILTRO (idéntico a 9.0) ================= */
 function construirFiltro(){
   const pat=Array(5).fill("."), G=new Set(), Y=new Set(), X=new Set(), posNo=[];
