@@ -1,97 +1,105 @@
 ﻿/* =========================================================
-   Estadísticas 2.4  –  (18-jul-2025)
-   ---------------------------------------------------------
-   • Números y % se formatean con Intl.NumberFormat según
-     el locale del PC (detecto navigator.language).
-   • Archivo sigue siendo .xls + BOM → Excel abre sin aviso.
+   Estadísticas 2.6  –  % como porcentaje real en XLS
    ========================================================= */
 (()=>{
-  const $ = id=>document.getElementById(id);
+  const $ = id => document.getElementById(id);
 
-  /* ----- Intl helpers según locale ----- */
-  const locale = navigator.language || navigator.userLanguage || "es-ES";
-  const fmtInt     = new Intl.NumberFormat(locale);
-  const fmt2       = new Intl.NumberFormat(locale,{minimumFractionDigits:2,maximumFractionDigits:2});
-  const fmt5       = new Intl.NumberFormat(locale,{minimumFractionDigits:5,maximumFractionDigits:5});
-  const pct        = (n,t)=> fmt2.format(n*100/t)+"%";
+  /* ---------- locale ---------- */
+  const loc = (navigator.languages && navigator.languages[0]) ||
+              navigator.language || "es-ES";
+  const nfInt=new Intl.NumberFormat(loc);
+  const nf2 = new Intl.NumberFormat(loc,{minimumFractionDigits:2,maximumFractionDigits:2});
+  const nf5 = new Intl.NumberFormat(loc,{minimumFractionDigits:5,maximumFractionDigits:5});
+  const toPctTxt = x => nf2.format(x*100) + "%";
 
-  /* ----- storage ----- */
-  const K_ACT="ws_stats_actual_v1", K_OH="ws_stats_offset_hist_v1", K_OT="ws_stats_offset_tool_v1";
-  const load=k=>(JSON.parse(localStorage.getItem(k)||"[]")||[]).concat(Array(7)).slice(0,7).map(x=>+x||0);
+  /* ---------- storage ---------- */
+  const K_ACT="ws_stats_actual_v1", K_H="ws_stats_hist_v1", K_T="ws_stats_tool_v1";
+  const load=k=>{try{const a=JSON.parse(localStorage.getItem(k)||"[]");return Array.isArray(a)&&a.length===7?a:Array(7).fill(0);}catch{return Array(7).fill(0);} };
   const save=(k,a)=>localStorage.setItem(k,JSON.stringify(a));
 
-  let A = load(K_ACT), OH = load(K_OH), OT = load(K_OT);
+  let A=load(K_ACT), H=load(K_H), T=load(K_T);
 
-  /* ---------- render ---------- */
-  const tbodyHTML=a=>{
+  /* ---------- paint on page ---------- */
+  const tbody=a=>{
     const tot=a.reduce((s,n)=>s+n,0)||1;
-    const rows=a.map((n,i)=>`<tr><td>${i+1}</td><td>${fmtInt.format(n)}</td><td>${pct(n,tot)}</td></tr>`).join("");
+    const rows=a.map((n,i)=>`<tr><td>${i+1}</td><td>${nfInt.format(n)}</td><td>${toPctTxt(n/tot)}</td></tr>`).join("");
     return rows+
-      `<tr><th>Sum</th><th>${fmtInt.format(tot)}</th><th></th></tr>`+
-      `<tr><th>Promedio</th><th colspan="2">${fmt5.format(a.reduce((s,n,i)=>s+n*(i+1),0)/tot)}</th></tr>`;
+      `<tr><th>Suma</th><th>${nfInt.format(tot)}</th><th></th></tr>`+
+      `<tr><th>Promedio</th><th colspan="2">${nf5.format(a.reduce((s,n,j)=>s+n*(j+1),0)/tot)}</th></tr>`;
   };
   const paint=()=>{
-    $("statsActualBody").innerHTML = tbodyHTML(A);
-    $("statsHistBody").innerHTML   = tbodyHTML(A.map((v,i)=>v+OH[i]));
-    $("statsToolBody").innerHTML   = tbodyHTML(A.map((v,i)=>v+OT[i]));
+    $("statsActualBody").innerHTML = tbody(A);
+    $("statsHistBody").innerHTML   = tbody(A.map((v,i)=>v+H[i]));
+    $("statsToolBody").innerHTML   = tbody(A.map((v,i)=>v+T[i]));
   };
 
   /* ---------- evento fin de partida ---------- */
   document.addEventListener("ws:gameEnd",e=>{
-    const b=e.detail.bucket;
-    (b>=1&&b<=6)?A[b-1]++:A[6]++;
+    const b=e.detail.bucket; (b>=1&&b<=6)?A[b-1]++:A[6]++;
     save(K_ACT,A); paint();
   });
 
   /* ---------- editar manual ---------- */
-  function ask(w){
+  function ask(which){
     const txt=prompt("Introduce 7 números separados por coma:");
-    if(!txt)return;
+    if(!txt) return;
     const arr=txt.split(",").map(s=>parseInt(s,10));
-    if(arr.length!==7||arr.some(n=>isNaN(n)||(w!=="TOOL"&&n<0))){
+    if(arr.length!==7||arr.some(n=>isNaN(n)||(which!=="T"&&n<0))){
       alert("Entrada inválida");return;
     }
-    if(w==="ACT")  A = arr, save(K_ACT ,A);
-    if(w==="HIST") OH= arr, save(K_OH  ,OH);
-    if(w==="TOOL") OT= arr, save(K_OT  ,OT);
+    if(which==="A") A=arr, save(K_ACT,A);
+    if(which==="H") H=arr, save(K_H ,H);
+    if(which==="T") T=arr, save(K_T ,T);
     paint();
   }
 
-  /* ======================================================
-     Excel + email
-     ====================================================== */
-  function downloadExcelAndMail(){
-    const tbl=(tit,arr)=>{
+  /* ---------- XLS + e-mail ---------- */
+  function downloadXLS(){
+    const tdGen = (raw,txt)=>`<td x:num="${raw}" style="mso-number-format:General;">${txt}</td>`;
+    const tdPct = (raw,txt)=>`<td x:num="${raw}" style="mso-number-format:0.00%;">${txt}</td>`;
+
+    const tbl = (title,arr)=>{
       const tot=arr.reduce((s,n)=>s+n,0)||1;
-      let h=`<table border="1"><tr><th colspan="3">${tit}</th></tr><tr><th>Intentos</th><th>Nº</th><th>%</th></tr>`;
-      arr.forEach((n,i)=>h+=`<tr><td>${i+1}</td><td>${fmtInt.format(n)}</td><td>${pct(n,tot)}</td></tr>`);
-      h+=`<tr><th>Sum</th><th>${fmtInt.format(tot)}</th><th></th></tr><tr><th>Promedio</th><th colspan="2">${fmt5.format(arr.reduce((s,n,j)=>s+n*(j+1),0)/tot)}</th></tr></table>`;
+      let h=`<table border="1"><tr><th colspan="3">${title}</th></tr>`+
+            `<tr><th>Intentos</th><th>Nº</th><th>%</th></tr>`;
+      arr.forEach((n,i)=>{
+        const p = (n/tot).toFixed(6);               // raw proportion
+        h+="<tr>"+
+           tdGen(i+1,nfInt.format(i+1))+
+           tdGen(n   ,nfInt.format(n))+
+           tdPct(p   ,toPctTxt(n/tot))+
+           "</tr>";
+      });
+      const avg=(arr.reduce((s,n,j)=>s+n*(j+1),0)/tot).toFixed(5);
+      h+=`<tr><th>Suma</th>${tdGen(tot,nfInt.format(tot))}<th></th></tr>`+
+         `<tr><th>Promedio</th>${tdGen(avg,nf5.format(avg))}</tr>`+
+         "</table>";
       return h;
     };
-    const html=`<html><meta charset="utf-8"><body>${tbl("ACTUAL",A)}<br/>${tbl("ACUM HIST",A.map((v,i)=>v+OH[i]))}<br/>${tbl("POST TOOL",A.map((v,i)=>v+OT[i]))}</body></html>`;
 
-    /* nombre archivo */
-    const d=new Date(), yyyy=d.getFullYear(), mm=String(d.getMonth()+1).padStart(2,"0"), dd=String(d.getDate()).padStart(2,"0");
-    const fname=`${yyyy}_${mm}_${dd}_Wordle_ESP_stats.xls`;
+    const html = "\uFEFF<html xmlns:x=\"urn:schemas-microsoft-com:office:excel\"><meta charset=utf-8><body>"+
+                 tbl("ACTUAL",A)+"<br/>"+
+                 tbl("ACUM HIST",A.map((v,i)=>v+H[i]))+"<br/>"+
+                 tbl("POST TOOL",A.map((v,i)=>v+T[i]))+
+                 "</body></html>";
 
-    /* descarga */
-    const blob=new Blob(["\uFEFF"+html],{type:"application/vnd.ms-excel"});
+    const d=new Date(), fn=`${d.getFullYear()}_${String(d.getMonth()+1).padStart(2,"0")}_${String(d.getDate()).padStart(2,"0")}_Wordle_ESP_stats.xls`;
+    const blob=new Blob([html],{type:"application/vnd.ms-excel"});
     const url=URL.createObjectURL(blob);
-    const a=document.createElement("a");a.href=url;a.download=fname;document.body.appendChild(a);a.click();
+    const a=document.createElement("a");a.href=url;a.download=fn;document.body.appendChild(a);a.click();
     setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},1e3);
 
-    /* mail body con tabs (sin formateo para evitar confusión) */
-    const line=(lab,arr)=>lab+"\t"+arr.join("\t");
-    const mailBody=[line("ACTUAL",A),line("ACUM_HIST",A.map((v,i)=>v+OH[i])),line("POST_TOOL",A.map((v,i)=>v+OT[i]))].join("\n");
-    location.href="mailto:qqcarlosqq@gmail.com?subject="+encodeURIComponent("Estadísticas Wordle Solver")+"&body="+encodeURIComponent(mailBody);
+    const line=(l,arr)=>l+"\t"+arr.join("\t");
+    const body=[line("ACTUAL",A),line("ACUM_HIST",A.map((v,i)=>v+H[i])),line("POST_TOOL",A.map((v,i)=>v+T[i]))].join("\n");
+    location.href="mailto:qqcarlosqq@gmail.com?subject="+encodeURIComponent("Estadísticas Wordle Solver")+"&body="+encodeURIComponent(body);
   }
 
   /* ---------- init ---------- */
   window.addEventListener("DOMContentLoaded",()=>{
-    $("btnResetActual").onclick=()=>ask("ACT");
-    $("btnResetHist").onclick  =()=>ask("HIST");
-    $("btnResetTool").onclick  =()=>ask("TOOL");
-    $("btnSendStats").onclick  =downloadExcelAndMail;
+    $("btnResetActual").onclick=()=>ask("A");
+    $("btnResetHist").onclick  =()=>ask("H");
+    $("btnResetTool").onclick  =()=>ask("T");
+    $("btnSendStats").onclick  =downloadXLS;
     paint();
   });
 })();
