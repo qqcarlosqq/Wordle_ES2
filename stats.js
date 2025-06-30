@@ -10,10 +10,10 @@
 
   /* ----- Intl helpers según locale ----- */
   const locale = navigator.language || navigator.userLanguage || "es-ES";
-  const fmtInt     = n => new Intl.NumberFormat(locale).format(n);
-  const fmt2       = n => new Intl.NumberFormat(locale,{minFractionDigits:2,maxFractionDigits:2}).format(n);
-  const fmt5       = n => new Intl.NumberFormat(locale,{minFractionDigits:5,maxFractionDigits:5}).format(n);
-  const pct        = (n,t)=> fmt2(n*100/t)+"%";
+  const fmtInt     = new Intl.NumberFormat(locale);
+  const fmt2       = new Intl.NumberFormat(locale,{minimumFractionDigits:2,maximumFractionDigits:2});
+  const fmt5       = new Intl.NumberFormat(locale,{minimumFractionDigits:5,maximumFractionDigits:5});
+  const pct        = (n,t)=> fmt2.format(n*100/t)+"%";
 
   /* ----- storage ----- */
   const K_ACT="ws_stats_actual_v1", K_OH="ws_stats_offset_hist_v1", K_OT="ws_stats_offset_tool_v1";
@@ -25,10 +25,10 @@
   /* ---------- render ---------- */
   const tbodyHTML=a=>{
     const tot=a.reduce((s,n)=>s+n,0)||1;
-    const rows=a.map((n,i)=>`<tr><td>${i+1}</td><td>${fmtInt(n)}</td><td>${pct(n,tot)}</td></tr>`).join("");
+    const rows=a.map((n,i)=>`<tr><td>${i+1}</td><td>${fmtInt.format(n)}</td><td>${pct(n,tot)}</td></tr>`).join("");
     return rows+
-      `<tr><th>Sum</th><th>${fmtInt(tot)}</th><th></th></tr>`+
-      `<tr><th>Promedio</th><th colspan="2">${fmt5(a.reduce((s,n,i)=>s+n*(i+1),0)/tot)}</th></tr>`;
+      `<tr><th>Sum</th><th>${fmtInt.format(tot)}</th><th></th></tr>`+
+      `<tr><th>Promedio</th><th colspan="2">${fmt5.format(a.reduce((s,n,i)=>s+n*(i+1),0)/tot)}</th></tr>`;
   };
   const paint=()=>{
     $("statsActualBody").innerHTML = tbodyHTML(A);
@@ -64,8 +64,8 @@
     const tbl=(tit,arr)=>{
       const tot=arr.reduce((s,n)=>s+n,0)||1;
       let h=`<table border="1"><tr><th colspan="3">${tit}</th></tr><tr><th>Intentos</th><th>Nº</th><th>%</th></tr>`;
-      arr.forEach((n,i)=>h+=`<tr><td>${i+1}</td><td>${fmtInt(n)}</td><td>${pct(n,tot)}</td></tr>`);
-      h+=`<tr><th>Sum</th><th>${fmtInt(tot)}</th><th></th></tr><tr><th>Promedio</th><th colspan="2">${fmt5(arr.reduce((s,n,j)=>s+n*(j+1),0)/tot)}</th></tr></table>`;
+      arr.forEach((n,i)=>h+=`<tr><td>${i+1}</td><td>${fmtInt.format(n)}</td><td>${pct(n,tot)}</td></tr>`);
+      h+=`<tr><th>Sum</th><th>${fmtInt.format(tot)}</th><th></th></tr><tr><th>Promedio</th><th colspan="2">${fmt5.format(arr.reduce((s,n,j)=>s+n*(j+1),0)/tot)}</th></tr></table>`;
       return h;
     };
     const html=`<html><meta charset="utf-8"><body>${tbl("ACTUAL",A)}<br/>${tbl("ACUM HIST",A.map((v,i)=>v+OH[i]))}<br/>${tbl("POST TOOL",A.map((v,i)=>v+OT[i]))}</body></html>`;
