@@ -81,7 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
   $("comparePool").addEventListener("change", e => comparePoolNow = e.target.value);
 
   showTab("solver");
-  generarListas();
+  //generarListas();
 });
 
 /* ---------- selects & pestañas ---------- */
